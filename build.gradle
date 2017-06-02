@@ -1,0 +1,72 @@
+/*
+ * This file is part of Guru Cue Search & Recommendation Engine.
+ * Copyright (C) 2017 Guru Cue Ltd.
+ *
+ * Guru Cue Search & Recommendation Engine is free software: you can
+ * redistribute it and/or modify it under the terms of the GNU General
+ * Public License as published by the Free Software Foundation, either
+ * version 3 of the License, or (at your option) any later version.
+ *
+ * Guru Cue Search & Recommendation Engine is distributed in the hope
+ * that it will be useful, but WITHOUT ANY WARRANTY; without even the
+ * implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+ * See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Guru Cue Search & Recommendation Engine. If not, see
+ * <http://www.gnu.org/licenses/>.
+ */
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+// to tag manually and push the tag upstream: V=1.0.101; git tag -a rls_$V -m "PostgreSQL data provider build $V" && git push -q origin rls_$V
+
+group = 'com.gurucue.recommendations'
+version = hasProperty('build_version') ? build_version : GitVersion.getVersion().toString()
+
+repositories {
+    flatDir dirs: 'libs'
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.apache.logging.log4j:log4j-api:2.2'
+    compile 'org.apache.logging.log4j:log4j-core:2.2'
+    compile 'net.sf.trove4j:trove4j:3.0.3'
+    compile 'com.google.guava:guava:18.0'
+    compile 'com.gurucue.recommendations:database:1.0.0'
+    compile 'com.gurucue.recommendations:data-provider-jdbc:1.0.0'
+    compile 'org.postgresql:postgresql:9.4-1201-jdbc41'
+
+    testCompile 'junit:junit:4.11'
+}
+
+jar {
+    manifest {
+        attributes( 'Implementation-Title': 'GuruCue PostgreSQL data provider implementation',
+                    'Implementation-version': version,
+                    'Built-By': System.properties.'user.name'
+                  )
+    }
+    setBaseName 'data-provider-postgresql'
+}
+
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+
+artifacts {
+    archives javadocJar
+}
+
+test {
+    minHeapSize = "8196m"
+    maxHeapSize = "16384m"
+}
+
+defaultTasks 'build'
